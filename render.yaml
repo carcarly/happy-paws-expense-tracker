@@ -1,3 +1,11 @@
-build:
-  aptPackages:
-    - tesseract-ocr
+services:
+  - name: happy-paws-expenses
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATA_DIR
+        value: /data
