@@ -1,0 +1,11 @@
+# Web
+*.pyc
+__pycache__/
+uploads/
+expenses.db
+*.log
+.env
+
+# IDE
+.vscode/
+.idea/

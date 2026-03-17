@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Paws Veterinary Clinic - Expense Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #a78bfa;
+            --primary-dark: #8b5cf6;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --bg: #0f0a1a;
+            --card: #1a1128;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: #2d1f4e;
+            --sidebar-start: #1e1033;
+            --sidebar-end: #2d1a4e;
+            --input-bg: #151020;
+            --hover: #251745;
+        }
+        
+        .light-mode {
+            --primary: #7c3aed;
+            --primary-dark: #6d28d9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #faf5ff;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e9d5ff;
+            --sidebar-start: #4c1d95;
+            --sidebar-end: #7c3aed;
+            --input-bg: #ffffff;
+            --hover: #f3e8ff;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        .table, .table-hover {
+            --bs-table-bg: var(--card);
+            --bs-table-color: var(--text);
+            --bs-table-hover-bg: var(--hover);
+            --bs-table-hover-color: var(--text);
+        }
+        
+        .form-control, .form-select, .input-group-text {
+            background-color: var(--input-bg);
+            border-color: var(--border);
+            color: var(--text);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background-color: var(--input-bg);
+            border-color: var(--primary);
+            color: var(--text);
+            box-shadow: 0 0 0 0.25rem rgba(167, 139, 250, 0.25);
+        }
+        
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .modal-content {
+            background: var(--card);
+            color: var(--text);
+        }
+        
+        .modal-header {
+            border-color: var(--border);
+        }
+        
+        .modal-footer {
+            border-color: var(--border);
+        }
+        
+        .btn-close {
+            filter: invert(1);
+        }
+        
+        .alert-info {
+            background: var(--card);
+            border-color: var(--border);
+            color: var(--text);
+        }
+        
+        .table-light {
+            --bs-table-bg: var(--hover);
+            --bs-table-color: var(--text);
+        }
+        
+        .progress {
+            background-color: var(--border);
+        }
+        
+        .sidebar {
+            background: linear-gradient(180deg, var(--sidebar-start) 0%, var(--sidebar-end) 100%);
+            min-height: 100vh;
+            padding: 1.5rem;
+            position: fixed;
+            width: 250px;
+            z-index: 1000;
+        }
+        
+        .sidebar .logo {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .sidebar .logo img {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: white;
+            padding: 4px;
+        }
+        
+        .sidebar .logo-text {
+            line-height: 1.2;
+        }
+        
+        .sidebar .logo-text small {
+            font-size: 0.65rem;
+            font-weight: 400;
+            opacity: 0.8;
+            display: block;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.7);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--card);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .stat-card .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        
+        .stat-card .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+        
+        .chart-card {
+            background: var(--card);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            height: 100%;
+        }
+        
+        .chart-card h6 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 1rem;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: var(--card);
+        }
+        
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary);
+            background: var(--hover);
+        }
+        
+        .upload-zone i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .expense-table {
+            background: var(--card);
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        
+        .expense-table th {
+            background: var(--card);
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .category-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        
+        .modal-content {
+            border-radius: 1rem;
+            border: none;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+                padding: 1rem 0.5rem;
+            }
+            .sidebar .logo span, .sidebar .nav-link span {
+                display: none;
+            }
+            .sidebar .nav-link i {
+                margin-right: 0;
+                font-size: 1.25rem;
+            }
+            .main-content {
+                margin-left: 70px;
+                padding: 1rem;
+            }
+        }
+        
+        .page { display: none; }
+        .page.active { display: block; }
+        
+        .receipt-preview {
+            max-width: 300px;
+            max-height: 400px;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .vendor-suggestion {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .vendor-suggestion:hover {
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="logo">
+            <img src="/static/logo.jpg" alt="Happy Paws">
+            <div class="logo-text">
+                Happy Paws
+                <small>VETERINARY CLINIC</small>
+            </div>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" href="#" data-page="dashboard">
+                    <i class="bi bi-grid-1x2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-page="upload">
+                    <i class="bi bi-camera"></i>
+                    <span>Upload Receipt</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-page="expenses">
+                    <i class="bi bi-receipt"></i>
+                    <span>Expenses</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-page="reports">
+                    <i class="bi bi-bar-chart"></i>
+                    <span>Reports</span>
+                </a>
+            </li>
+            <li class="nav-item mt-4">
+                <a class="nav-link" href="#" data-page="settings">
+                    <i class="bi bi-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+            <li class="nav-item mt-auto pt-4">
+                <a class="nav-link" href="#" id="dark-mode-toggle">
+                    <i class="bi bi-moon-stars"></i>
+                    <span>Dark Mode</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Page -->
+        <div id="page-dashboard" class="page active">
+            <h4 class="mb-4">Dashboard Overview</h4>
+            
+            <!-- Stats Row -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-calendar-day"></i>
+                        </div>
+                        <div class="stat-value" id="stat-today">$0</div>
+                        <div class="stat-label">Today's Spending</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-calendar-month"></i>
+                        </div>
+                        <div class="stat-value" id="stat-month">$0</div>
+                        <div class="stat-label">This Month</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <div class="stat-value" id="stat-change">0%</div>
+                        <div class="stat-label">vs Last Month</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div class="stat-value" id="stat-count">0</div>
+                        <div class="stat-label">Expenses This Month</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-8">
+                    <div class="chart-card">
+                        <h6>Spending Trend (Last 12 Months)</h6>
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="chart-card">
+                        <h6>By Category</h6>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent & Top Vendors -->
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="chart-card">
+                        <h6>Recent Expenses</h6>
+                        <div id="recent-expenses"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-card">
+                        <h6>Top Vendors</h6>
+                        <div id="top-vendors"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Page -->
+        <div id="page-upload" class="page">
+            <h4 class="mb-4">Upload Receipt</h4>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="upload-zone" id="upload-zone">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <h5>Drop receipt here or click to upload</h5>
+                        <p class="text-muted">Supports JPG, PNG, GIF, BMP, WebP</p>
+                        <input type="file" id="file-input" accept="image/*" style="display:none">
+                    </div>
+                    <img id="receipt-preview" class="receipt-preview d-none">
+                </div>
+                <div class="col-md-6">
+                    <div id="extracted-data" class="d-none">
+                        <h6 class="mb-3">Extracted Information</h6>
+                        <form id="expense-form">
+                            <div class="mb-3">
+                                <label class="form-label">Vendor</label>
+                                <input type="text" class="form-control" id="form-vendor">
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Amount</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="form-amount" step="0.01">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Date</label>
+                                        <input type="date" class="form-control" id="form-date">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Category</label>
+                                <select class="form-select" id="form-category"></select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <input type="text" class="form-control" id="form-description">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Payment Method</label>
+                                <select class="form-select" id="form-payment">
+                                    <option value="Cash">Cash</option>
+                                    <option value="Credit Card">Credit Card</option>
+                                    <option value="Debit Card">Debit Card</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Check">Check</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <input type="hidden" id="form-receipt-image">
+                            <input type="hidden" id="form-extracted-text">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-check-lg"></i> Save Expense
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses Page -->
+        <div id="page-expenses" class="page">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4>All Expenses</h4>
+                <button class="btn btn-primary" data-page="upload">
+                    <i class="bi bi-plus-lg"></i> Add Expense
+                </button>
+            </div>
+            
+            <!-- Filters -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <input type="date" class="form-control" id="filter-start" placeholder="Start Date">
+                </div>
+                <div class="col-md-3">
+                    <input type="date" class="form-control" id="filter-end" placeholder="End Date">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="filter-category">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="filter-search" placeholder="Search...">
+                        <button class="btn btn-outline-secondary" onclick="loadExpenses()">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Export Button -->
+            <div class="mb-3">
+                <button class="btn btn-outline-success" onclick="exportCSV()">
+                    <i class="bi bi-download"></i> Export CSV
+                </button>
+            </div>
+            
+            <!-- Expenses Table -->
+            <div class="expense-table">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Vendor</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenses-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Reports Page -->
+        <div id="page-reports" class="page">
+            <h4 class="mb-4">Reports</h4>
+            
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Report Type</label>
+                    <select class="form-select" id="report-type">
+                        <option value="summary">Summary by Category</option>
+                        <option value="daily">Daily Breakdown</option>
+                        <option value="vendor">By Vendor</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="report-start">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="report-end">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button class="btn btn-primary w-100" onclick="generateReport()">
+                        <i class="bi bi-bar-chart"></i> Generate
+                    </button>
+                </div>
+            </div>
+            
+            <div id="report-results"></div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="page-settings" class="page">
+            <h4 class="mb-4">Settings</h4>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="chart-card mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Expense Categories</h6>
+                            <button class="btn btn-sm btn-primary" onclick="showAddCategory()">
+                                <i class="bi bi-plus-lg"></i> Add Category
+                            </button>
+                        </div>
+                        <p class="text-muted small mb-3">Manage your expense categories and the keywords used for auto-detection.</p>
+                        
+                        <!-- Add/Edit Category Form -->
+                        <div id="category-form" class="d-none mb-4 p-3 border rounded">
+                            <h6 id="category-form-title">Add Category</h6>
+                            <input type="hidden" id="cat-edit-id">
+                            <input type="hidden" id="cat-edit-old-name">
+                            <div class="mb-3">
+                                <label class="form-label">Category Name</label>
+                                <input type="text" class="form-control" id="cat-name" placeholder="e.g. Laboratory & Diagnostics">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Keywords (comma-separated)</label>
+                                <input type="text" class="form-control" id="cat-keywords" placeholder="e.g. blood test, lab, cbc, urinalysis">
+                                <small class="text-muted">Receipts containing these words will auto-categorize here</small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="saveCategory()">Save</button>
+                                <button class="btn btn-outline-secondary" onclick="hideCategoryForm()">Cancel</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Categories List -->
+                        <div id="settings-categories"></div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="chart-card mb-4">
+                        <h6>How Auto-Categorization Works</h6>
+                        <p class="small text-muted">
+                            When you upload a receipt, the app reads the text and checks for your keywords. 
+                            If it finds a match, it automatically assigns that category.
+                        </p>
+                        <p class="small text-muted">
+                            <strong>Tip:</strong> Add specific terms that appear on your common receipts 
+                            (e.g., "CBC", "blood panel", "pathology" for lab expenses).
+                        </p>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h6>Clinic Info</h6>
+                        <div class="mb-2">
+                            <small class="text-muted">Clinic Name</small>
+                            <div>Happy Paws Veterinary Clinic</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Expense</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-form">
+                        <input type="hidden" id="edit-id">
+                        <div class="mb-3">
+                            <label class="form-label">Vendor</label>
+                            <input type="text" class="form-control" id="edit-vendor">
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Amount</label>
+                                    <input type="number" class="form-control" id="edit-amount" step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="edit-date">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" id="edit-category"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <input type="text" class="form-control" id="edit-description">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
