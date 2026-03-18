@@ -354,6 +354,10 @@ function renderTopVendors(vendors) {
 function setupUpload() {
     const zone = document.getElementById('upload-zone');
     const input = document.getElementById('file-input');
+    const skipLink = document.getElementById('skip-upload');
+    
+    // Show form by default with today's date
+    document.getElementById('form-date').value = new Date().toISOString().split('T')[0];
     
     zone.addEventListener('click', () => input.click());
     
@@ -376,6 +380,20 @@ function setupUpload() {
     input.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) processReceipt(file);
+    });
+    
+    skipLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Clear form for manual entry
+        document.getElementById('form-vendor').value = '';
+        document.getElementById('form-amount').value = '';
+        document.getElementById('form-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('form-category').selectedIndex = 0;
+        document.getElementById('form-description').value = '';
+        document.getElementById('form-receipt-image').value = '';
+        document.getElementById('form-extracted-text').value = '';
+        document.getElementById('form-payment').selectedIndex = 0;
+        document.getElementById('form-vendor').focus();
     });
 }
 

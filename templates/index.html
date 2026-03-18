@@ -448,10 +448,10 @@
 
         <!-- Upload Page -->
         <div id="page-upload" class="page">
-            <h4 class="mb-4">Upload Receipt</h4>
+            <h4 class="mb-4">Add Expense</h4>
             
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <div class="upload-zone" id="upload-zone">
                         <i class="bi bi-cloud-arrow-up"></i>
                         <h5>Drop receipt here or click to upload</h5>
@@ -459,10 +459,13 @@
                         <input type="file" id="file-input" accept="image/*" style="display:none">
                     </div>
                     <img id="receipt-preview" class="receipt-preview d-none">
+                    <p class="text-center text-muted mt-3">
+                        <a href="#" id="skip-upload" class="text-decoration-none">Or add expense without a receipt →</a>
+                    </p>
                 </div>
-                <div class="col-md-6">
-                    <div id="extracted-data" class="d-none">
-                        <h6 class="mb-3">Extracted Information</h6>
+                <div class="col-md-7">
+                    <div id="extracted-data">
+                        <h6 class="mb-3">Expense Details</h6>
                         <form id="expense-form">
                             <div class="mb-3">
                                 <label class="form-label">Vendor</label>
