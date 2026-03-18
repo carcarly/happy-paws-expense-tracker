@@ -25,7 +25,11 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 # Use /data directory on Render (persistent disk), local otherwise
 DATA_DIR = os.environ.get('DATA_DIR', os.path.dirname(__file__))
 
+# Ensure data directory exists
+os.makedirs(DATA_DIR, exist_ok=True)
+
 app.config['UPLOAD_FOLDER'] = os.path.join(DATA_DIR, 'uploads')
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 app.config['DATABASE'] = os.path.join(DATA_DIR, 'expenses.db')
 
