@@ -12,7 +12,13 @@ from functools import wraps
 from flask import Flask, request, jsonify, send_from_directory, g
 from werkzeug.utils import secure_filename
 from PIL import Image
-import pytesseract
+
+try:
+    import pytesseract
+    HAS_OCR = True
+except ImportError:
+    HAS_OCR = False
+    print("WARNING: pytesseract not available. OCR disabled.")
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -138,6 +144,8 @@ def allowed_file(filename):
 
 def extract_text_from_image(image_path):
     """Extract text from image using OCR."""
+    if not HAS_OCR:
+        return ""
     try:
         img = Image.open(image_path)
         text = pytesseract.image_to_string(img)
