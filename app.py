@@ -301,6 +301,17 @@ def serve_receipt(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
+@app.route('/api/health')
+def health_check():
+    """Health check with R2 status."""
+    return jsonify({
+        'status': 'ok',
+        'r2_enabled': USE_R2,
+        'r2_endpoint': R2_ENDPOINT[:30] + '...' if R2_ENDPOINT else 'not set',
+        'r2_bucket': R2_BUCKET or 'not set'
+    })
+
+
 @app.route('/api/upload', methods=['POST'])
 def upload_receipt():
     """Upload and process receipt image."""
