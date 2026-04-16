@@ -335,7 +335,14 @@ def upload_receipt():
     # Upload to R2 if enabled
     if USE_R2 and s3_client:
         try:
-            s3_client.upload_file(filepath, R2_BUCKET, f'receipts/{filename}')
+            with open(filepath, 'rb') as f:
+                s3_client.put_object(
+                    Bucket=R2_BUCKET,
+                    Key=f'receipts/{filename}',
+                    Body=f.read(),
+                    ContentType=file.content_type or 'image/jpeg'
+                )
+            print(f"R2 upload success: receipts/{filename}")
         except Exception as e:
             print(f"R2 upload error: {e}")
     
