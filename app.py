@@ -20,6 +20,26 @@ except ImportError:
     HAS_OCR = False
     print("WARNING: pytesseract not available. OCR disabled.")
 
+import boto3
+
+# R2 Cloud Storage Configuration
+R2_ENDPOINT = os.environ.get('R2_ENDPOINT_URL', '')
+R2_ACCESS_KEY = os.environ.get('R2_ACCESS_KEY_ID', '')
+R2_SECRET_KEY = os.environ.get('R2_SECRET_ACCESS_KEY', '')
+R2_BUCKET = os.environ.get('R2_BUCKET_NAME', '')
+USE_R2 = bool(R2_ENDPOINT and R2_ACCESS_KEY and R2_SECRET_KEY and R2_BUCKET)
+
+s3_client = None
+if USE_R2:
+    s3_client = boto3.client(
+        's3',
+        endpoint_url=R2_ENDPOINT,
+        aws_access_key_id=R2_ACCESS_KEY,
+        aws_secret_access_key=R2_SECRET_KEY,
+        region_name='auto'
+    )
+    print(f"R2 storage enabled: {R2_BUCKET}")
+
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
 # Use /data directory on Render (persistent disk), local otherwise
@@ -262,6 +282,25 @@ def serve_static(path):
     return send_from_directory('static', path)
 
 
+@app.route('/api/receipt/<filename>')
+def serve_receipt(filename):
+    """Serve receipt image from R2 or local storage."""
+    if USE_R2 and s3_client:
+        try:
+            obj = s3_client.get_object(Bucket=R2_BUCKET, Key=f'receipts/{filename}')
+            from flask import Response
+            return Response(
+                obj['Body'].read(),
+                mimetype=obj['ContentType'],
+                headers={'Content-Disposition': f'inline; filename={filename}'}
+            )
+        except Exception as e:
+            print(f"R2 fetch error: {e}")
+    
+    # Fallback to local
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
 @app.route('/api/upload', methods=['POST'])
 def upload_receipt():
     """Upload and process receipt image."""
@@ -281,6 +320,13 @@ def upload_receipt():
     filename = timestamp + filename
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(filepath)
+    
+    # Upload to R2 if enabled
+    if USE_R2 and s3_client:
+        try:
+            s3_client.upload_file(filepath, R2_BUCKET, f'receipts/{filename}')
+        except Exception as e:
+            print(f"R2 upload error: {e}")
     
     # Extract text
     extracted_text = extract_text_from_image(filepath)
