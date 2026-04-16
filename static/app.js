@@ -351,9 +351,13 @@ function renderTopVendors(vendors) {
 }
 
 // ==================== UPLOAD ====================
+let uploadQueue = [];
+
 function setupUpload() {
     const zone = document.getElementById('upload-zone');
     const input = document.getElementById('file-input');
+    const cameraBtn = document.getElementById('camera-btn');
+    const cameraInput = document.getElementById('camera-input');
     const skipLink = document.getElementById('skip-upload');
     
     // Show form by default with today's date
@@ -373,18 +377,32 @@ function setupUpload() {
     zone.addEventListener('drop', (e) => {
         e.preventDefault();
         zone.classList.remove('dragover');
-        const file = e.dataTransfer.files[0];
-        if (file) processReceipt(file);
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length === 1) {
+            processReceipt(files[0]);
+        } else if (files.length > 1) {
+            processBulkUpload(files);
+        }
     });
     
     input.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 1) {
+            processReceipt(files[0]);
+        } else if (files.length > 1) {
+            processBulkUpload(files);
+        }
+    });
+    
+    cameraBtn.addEventListener('click', () => cameraInput.click());
+    cameraInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) processReceipt(file);
+        cameraInput.value = '';
     });
     
     skipLink.addEventListener('click', (e) => {
         e.preventDefault();
-        // Clear form for manual entry
         document.getElementById('form-vendor').value = '';
         document.getElementById('form-amount').value = '';
         document.getElementById('form-date').value = new Date().toISOString().split('T')[0];
@@ -395,6 +413,60 @@ function setupUpload() {
         document.getElementById('form-payment').selectedIndex = 0;
         document.getElementById('form-vendor').focus();
     });
+}
+
+async function processBulkUpload(files) {
+    const queueDiv = document.getElementById('bulk-queue');
+    const queueList = document.getElementById('bulk-queue-list');
+    queueDiv.classList.remove('d-none');
+    
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const item = document.createElement('div');
+        item.className = 'd-flex justify-content-between align-items-center py-2 border-bottom';
+        item.innerHTML = `<span>${escapeHtml(file.name)}</span><span class="text-muted">Processing...</span>`;
+        queueList.appendChild(item);
+        
+        try {
+            const formData = new FormData();
+            formData.append('receipt', file);
+            const resp = await fetch('/api/upload', { method: 'POST', body: formData });
+            const data = await resp.json();
+            
+            if (data.success) {
+                const p = data.parsed;
+                const saveData = {
+                    vendor: p.vendor,
+                    amount: p.amount,
+                    date: p.date,
+                    category: p.category,
+                    description: '',
+                    receipt_image: p.receipt_image,
+                    extracted_text: p.extracted_text,
+                    payment_method: 'Unknown'
+                };
+                const saveResp = await api('expenses', {
+                    method: 'POST',
+                    body: JSON.stringify(saveData)
+                });
+                
+                if (saveResp.success) {
+                    item.innerHTML = `<span>${escapeHtml(file.name)}</span><span class="text-success fw-bold">✓ ${formatCurrency(p.amount)}</span>`;
+                } else {
+                    item.innerHTML = `<span>${escapeHtml(file.name)}</span><span class="text-warning">Saved (no amount)</span>`;
+                }
+            } else {
+                item.innerHTML = `<span>${escapeHtml(file.name)}</span><span class="text-danger">Failed</span>`;
+            }
+        } catch (err) {
+            item.innerHTML = `<span>${escapeHtml(file.name)}</span><span class="text-danger">Error</span>`;
+        }
+    }
+    
+    const doneMsg = document.createElement('div');
+    doneMsg.className = 'text-success mt-2 fw-bold';
+    doneMsg.textContent = `✅ ${files.length} receipt(s) processed! Check Expenses for details.`;
+    queueList.appendChild(doneMsg);
 }
 
 async function processReceipt(file) {

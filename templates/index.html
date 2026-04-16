@@ -454,14 +454,26 @@
                 <div class="col-md-5">
                     <div class="upload-zone" id="upload-zone">
                         <i class="bi bi-cloud-arrow-up"></i>
-                        <h5>Drop receipt here or click to upload</h5>
-                        <p class="text-muted">Supports JPG, PNG, GIF, BMP, WebP</p>
-                        <input type="file" id="file-input" accept="image/*" style="display:none">
+                        <h5>Drop receipts here or click to upload</h5>
+                        <p class="text-muted">Supports JPG, PNG, GIF, BMP, WebP • Multiple files OK</p>
+                        <input type="file" id="file-input" accept="image/*" multiple style="display:none">
                     </div>
-                    <img id="receipt-preview" class="receipt-preview d-none">
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn btn-outline-primary flex-fill" id="camera-btn">
+                            <i class="bi bi-camera"></i> Take Photo
+                        </button>
+                        <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none">
+                    </div>
+                    <img id="receipt-preview" class="receipt-preview d-none mt-3">
                     <p class="text-center text-muted mt-3">
                         <a href="#" id="skip-upload" class="text-decoration-none">Or add expense without a receipt →</a>
                     </p>
+                    
+                    <!-- Bulk upload queue -->
+                    <div id="bulk-queue" class="d-none mt-3">
+                        <h6 class="mb-2">Upload Queue</h6>
+                        <div id="bulk-queue-list"></div>
+                    </div>
                 </div>
                 <div class="col-md-7">
                     <div id="extracted-data">
