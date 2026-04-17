@@ -31,12 +31,18 @@ USE_R2 = bool(R2_ENDPOINT and R2_ACCESS_KEY and R2_SECRET_KEY and R2_BUCKET)
 
 s3_client = None
 if USE_R2:
+    from botocore.config import Config
     s3_client = boto3.client(
         's3',
         endpoint_url=R2_ENDPOINT,
         aws_access_key_id=R2_ACCESS_KEY,
         aws_secret_access_key=R2_SECRET_KEY,
-        region_name='auto'
+        region_name='auto',
+        config=Config(
+            connect_timeout=5,
+            read_timeout=10,
+            retries={'max_attempts': 2}
+        )
     )
     print(f"R2 storage enabled: {R2_BUCKET}")
 
@@ -304,9 +310,27 @@ def serve_receipt(filename):
 @app.route('/api/health')
 def health_check():
     """Health check with R2 status."""
+    r2_error = None
+    if USE_R2 and s3_client:
+        try:
+            s3_client.put_object(
+                Bucket=R2_BUCKET,
+                Key='_health_check.txt',
+                Body=b'ok'
+            )
+            s3_client.delete_object(Bucket=R2_BUCKET, Key='_health_check.txt')
+            r2_status = 'connected'
+        except Exception as e:
+            r2_status = 'error'
+            r2_error = str(e)
+    else:
+        r2_status = 'disabled'
+    
     return jsonify({
         'status': 'ok',
         'r2_enabled': USE_R2,
+        'r2_status': r2_status,
+        'r2_error': r2_error,
         'r2_endpoint': R2_ENDPOINT[:30] + '...' if R2_ENDPOINT else 'not set',
         'r2_bucket': R2_BUCKET or 'not set'
     })
@@ -336,15 +360,18 @@ def upload_receipt():
     if USE_R2 and s3_client:
         try:
             with open(filepath, 'rb') as f:
-                s3_client.put_object(
-                    Bucket=R2_BUCKET,
-                    Key=f'receipts/{filename}',
-                    Body=f.read(),
-                    ContentType=file.content_type or 'image/jpeg'
-                )
+                file_data = f.read()
+            s3_client.put_object(
+                Bucket=R2_BUCKET,
+                Key=f'receipts/{filename}',
+                Body=file_data,
+                ContentType=file.content_type or 'image/jpeg'
+            )
             print(f"R2 upload success: receipts/{filename}")
         except Exception as e:
+            import traceback
             print(f"R2 upload error: {e}")
+            traceback.print_exc()
     
     # Extract text
     extracted_text = extract_text_from_image(filepath)
