@@ -32,16 +32,20 @@ USE_R2 = bool(R2_ENDPOINT and R2_ACCESS_KEY and R2_SECRET_KEY and R2_BUCKET)
 s3_client = None
 if USE_R2:
     from botocore.config import Config
+    import urllib.parse
+    # Ensure endpoint has bucket in path for path-style addressing
+    endpoint = R2_ENDPOINT.rstrip('/')
     s3_client = boto3.client(
         's3',
-        endpoint_url=R2_ENDPOINT,
-        aws_access_key_id=R2_ACCESS_KEY,
-        aws_secret_access_key=R2_SECRET_KEY,
+        endpoint_url=endpoint,
+        aws_access_key_id=R2_ACCESS_KEY.strip(),
+        aws_secret_access_key=urllib.parse.unquote(R2_SECRET_KEY.strip()),
         region_name='auto',
         config=Config(
-            connect_timeout=5,
-            read_timeout=10,
-            retries={'max_attempts': 2}
+            s3={'addressing_style': 'path'},
+            connect_timeout=10,
+            read_timeout=15,
+            retries={'max_attempts': 3}
         )
     )
     print(f"R2 storage enabled: {R2_BUCKET}")
